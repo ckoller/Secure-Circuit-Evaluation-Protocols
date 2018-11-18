@@ -1,0 +1,118 @@
+\chapter{Circuit Evaluation with Passive Security}
+\label{cha:CEPS}
+
+\section{Protocol with Passive Security}
+In the following an MPC protocol is presented with consider any number $n \geq 3$ of players and as long as at most $t < n/2$ players go together after the protocol is executed they learn nothing more than their own inputs and the outputs they were supposed to receive, even if their computing power is unbounded. We will assume that all players follow the protocol, also known as passive security.
+
+It is assumed that all player can communicate using a perfectly secure channel, so if two players exchange data the third player knows nothing about what is sent. We require that there will be  \emph{perfect correctness} meaning that with probability 1, all players receive outputs correct based on the inputs supplied. We Also require \emph{perfect privacy} meaning that the corrupt players $C$ learns no more information than their allowed values. Privacy is shown through the simulation paradigm earlier discussed, where we show that if someone only learns information $X$, then everything he sees can be efficiently recreated or simulated given only $X$. Privacy have formally been defined in \ref{def:privacy}. To recap we said that there is privacy if there exists an efficient probabilistic algorithm $S$, which given the allowed values can produce the output whose distribution is the same as the dataset of leaked values seen by the corrupt parties.
+
+\begin{align*}
+    S(\{x_j,y_j\}_{P_j\in C}) \overset{perf.}{\equiv}  \{view_j\}_{P_j\in C}
+\end{align*}    
+
+\subsection{The Protocol}
+This protocol consist of three phases: input-sharing, computation and output reconstruction. For simplicity the protocol will be described for a circuit where each player $P_i$ has a secret input $x_i \in \mathbb{F}$. If it is the case that players can have multiple or no inputs it is the assumed that the players have agreed on forehand or have some way of knowing who is in charge of which input gate. 
+We require that the invariant is hold, meaning that on any gate with $\alpha \in \mathbb{F}$ assigned to the input or output wire. Then if the gate has been processed the players hold $[\alpha; f_\alpha]$.
+
+\noindent\textbf{Input Sharing Phase:} Each player $P_i$ has a secret input $x_i \in \mathbb{F}$ and they distribute $[x_i,f_{x_i}]_t$.  \\
+
+\noindent\textbf{Computational Phase:} Go through the gates in computational order and you the following for the different kind of gates:
+
+\begin{itemize}
+    \item \textbf{Addition gate:} The players hold $[a;f_a]_t$, $[b; f_b]_t$ the players compute $[a;f_a]_t + b; f_b]_t = [a+b;f_a+f_b]_t$.
+    \item \textbf{Multiplication-by-constant gate:} The players hold $[a;f_a]_t$ and $\alpha$ and compute $\alpha [a;f]_t = [\alpha a; \alpha f]_t$.
+    \item \textbf{Multiplication gate:} The players hold $[a;f_a]_t$, $[b; f_b]_t$ 
+    \begin{enumerate}
+        \item The players compute: $[a;f]_t * [b;g]_t = [ab;fg]_{2t}$.
+        \item The players create a new polynomial and thereby 'reduce the degree' by letting $h=f_a f_b$ where $h(0)=f_a(0)f_b(0)=ab$ each party already holds $h(i)$ and distributes $[h(i);f_i]_t$.
+        \item Remember that $deg(h=f_a f_b)=2t \leq n-1$. Remember also that we introduced the notion of a recombination vector $\textbf{r}=(r_1^j,\dots r_m^j)$ that can be used to compute a value $f(j)$ of a polynomial $f$ and that this recombination vector works for all polynomials of degree lower than $m-1$. Hence can let $\textbf{r}=(r_1,\dots r_n)$ be a recombination vector for for $h(0)=\sum_{i=1}^n r_i h(i)$ for any polynomial $h$ where $deg(h) \leq n-1$. The players can compute: 
+        \begin{align*}
+             \sum_i r_i[h(i);f_i)]_t &= [\sum_i r_i h(i);\sum_i r_if_i)]_t \\
+             &= [h(0);\sum_i r_if_i)]_t \\
+             &=[ab;\sum_i r_if_i)]_t
+        \end{align*}
+        This means that we can use Lagrange to recombine the shares $[h(i);f_i)]_t$ and get $h(0)=ab$.
+    \end{enumerate}
+\end{itemize}
+
+\noindent\textbf{Output Reconstruction Phase:} All gates has been processed and now the players hold $[y_j ; f_{y_j}]$ for each output gate. The players securely sends their shares to each other and after receiving on shares a output gate they can use Lagrange Interpolation to compute $y=f_y(0)$ from the any of the $t+1$ or more shares.
+
+\subsection{Correctness}
+If the invariant is maintained then when the whole circuit has been evaluated, then the players hold the correct shares for the correct value on every wire hold. The invariant for input sharing holds because of what we saw in the Lagrange Interpolation chapter. In the computation phase the invariant is held because of previously discussed polynomial arithmetic's, and we also saw that the invariant for the multiplication gate is held. 
+
+\subsection{Privacy}
+The corrupted parties $C$ get two types of messages. \emph{Type 1} is messages from the input sharing where they receive random sharings $[x_i;f_{x_i}]_t$ and from multiplication-gate where they receive random sharings $[h(i),f_i]_t$, from the honest parties. \emph{Type 2} is in the output reconstruction phase where they receive all shares in $[y;f_y]_t$ for each output gate. We also make two observations. \emph{Observation 1} is that in input sharing and multiplication is values are shared using random polynomials $f_{x_i}$ and $f_i$, which are both of degree at most $t$. Since the are at most $t$ corrupt players they can only get $t$ shares if they pool their information and hence they can not reconstruct and their shares are just uniformly random values. \emph{Observation 2} is that the values send by the honest parties to the corrupt parties in the output reconstruction phase could be computed by the corrupted parties given the value $f_y(0)=y$, as it would give them and $t+1$ shares. \\
+
+The values seen by the corrupted players gives no information to their own inputs and outputs. In input sharing and multiplication they just receive uniformly random values and in the output reconstruction phase they receive values they could have computed themselves from their own output $y$. \\
+
+Remember that a simulator given input and outputs of the corrupt players and will try to efficiently generate a view that is perfectly indistinguishable from the corrupted players view, to show that they learned nothing more than their own inputs and outputs. \\
+The simulator $S$ will run the corrupted party on their inputs and outputs. In the input sharing and multiplication it samples uniformly random values and send them from the corrupt parties to the honest parties. This gives us the right output distribution by observation 1. Remember $S$ is given all input and output of the corrupted parties, this means that $S$ was given $f(0)=y$ for for each output gate. Hence $S$ can in the output reconstruction phase use the $t$ shares plus $y$ to calculate the shares in $[y;f_y]$ to be constant with the corrupted parties shares. This gives the right distribution by observation 2.
+
+\section{Alternative Protocol}
+This protocol is unconditionally secure and has a corruption threshold of $t<n/2$ and a communication complexity of $\mathbb{O}(nC)k$. It was the first unconditionally secure SFE protocol were the communication complexity is linear in $n$. $C$ is the number of gates and $n$ is the number of parties, $k$ is the bitlength of the elements over the fields. The communication complexity of a MPC protcol is the total number of bits sent and received by the honest parties in the protocol.
+
+In this protocol a finite field $\mathbb{F}$ is used. $k=log_2(|\mathbb{F}|)$ is the bit lenght of the elements from $F$. They als fix an extention field $G$.
+
+\subsection{Random Sharings}
+This passive secure circuit evaluation protocol use a protocol for creating random sharing of uniformly random values. fx. $r_l \in \mathbb{F}$.
+
+Random sharing: $[r_1;f_{r_1}]_t, \dots, [r_n;f_{r_l}]_t$. Double random sharing $[r_1;f_{r_1}]_2t, \dots,  [r_n;f_{r_n}]_2t$.
+
+
+
+$l=n-t$ for larger $l$ the protocol is run a number of times. 
+
+The protocol uses a matrix $M=Van^(n,n-t)^T$.
+
+
+\begin{enumerate}
+    \item Each $P_i \in P$: Pick a uniformly random value $s^{(i)}\in_R\mathbb{F}$ and deal a t-sharing $[s^{(i)}]$ an a 2t-sharing  $<s^{(i)}>$.
+    \item Compute $([r_1],\cdot,[r_n])=M([s^{(i)}],\cdot,[s^{(i)}])$,  $([r_1],\cdot,[r_n])=M(<s^{(i)}>,\cdot,<s^{(i)}>)$.
+    \item Output $(([r_1], <R_2>),\cdot, ([r_l], <R_l>)$.
+\end{enumerate}
+
+explain...
+
+
+
+\subsection{Open sharing}To open sharing we choose a party $P_king \in P$ who does to reconstruction and send the result to the rest of the parties.
+
+\begin{enumerate}
+    \item Each $P_i \in P$: Send $x_i$ of $[x]$ to $P_king$.
+    \item $P_king$: Compute the polynomial $f(x)$ with Lagrange and send $f(0)=x$ to all parties.
+\end{enumerate}
+
+\subsection{Multiplication Triples}
+
+$c=ab$
+\begin{enumerate}
+    \item All parties Run $Random(2l)\rightarrow(([a_1],[b_1]),...,([a_l], [b_l])$ and $DoubleRandom(l)\rightarrow(([r_1], <R_2>),\cdot, ([r_l], <R_l>)$.
+    \item Compute $<D>=[a][b]+<R>$.
+    \item Run $D \leftarrow Open(2t,<D>)$.
+    \item Compute $[c]=D-[r]$
+    \item Output $(([a_1],[b_1],[c_1]),...,([a_l], [b_l], [c_l]))$
+\end{enumerate}
+
+\subsection{Preprocessing}
+We do some preprocessing before the protocol is run.
+
+\begin{enumerate}
+    \item input gates: Run Random(i) and associate $r_gid$ to each input input gate in the circuit. Then send all sharings of $[r_gid]$ to $P_j$ and let $P_j$ compute $r_gid$
+    \item multiplication gate: run Tripes(m) and accociate one multiplication triple with each gate.
+\end{enumerate}
+
+\subsection{Evaluation}
+The circit is evaluated layer by layer.
+
+\begin{enumerate}
+    \item input gates: $P_j$ retreive input $x_gid$ and send $\delta_gid=x_gid+r_gid$ to all parties. All parties then compute $[x_gid]=\delta_gid-[r_gid].$
+    \item affine gates: do as normal.
+    \multiplication gate: For a multiplication gate we: 
+    1. Compute $[\alpha_gid]=[x_gid1]+[a_gid]$ and $[\beta_gid]=[x_gid2]+[b_gid]$.
+    2. Run $Open([\alpha_gid])\rightarrow \alpha_gid$
+    2. Run $Open([\beta_gid])\rightarrow \beta_gid$
+    3. Calculate $[x_gid]=\alpha_gid \beta_gid - \alpha_gid[b_gid]- \beta_gid [a_gid] + [c_gid]$.
+    4. Output: $Open([x_gid]) \rightarrow x_gid$
+
+
+\end{enumerate}

@@ -1,0 +1,20 @@
+\chapter{Introduction}
+\label{cha:introduction}
+
+% What is MPC?
+Secure multiparty computation (MPC) is a field in cryptography where $n$ players can securely evaluate an agreed function and only learn the output of that function on their inputs, whilst keeping their inputs private. 
+
+% Where does is come from + Millionaire motivation
+The topic of MPC was formally introduced for the first time by Yao\cite{Yao:1982} in 1982, where he presented and motivated MPC through the millionaire problem: Assume two millionaires wish to to know who is richer, but they do not want to reveal any additional information about each others wealth. The two millionaires are interested in learning the result of a function that calculates which number is bigger, given their wealth as a private input. 
+
+% Motivation
+In modern society we live in a digital information age where we through electronic media interact with with a large number of parties whom we have never met and who might have interests which are divergent from our own. Many people has people has private data online, such as information about loans, tax, deceases or medicine. This private data provide value when it is being used for something. Hence we need to have ways of controlling the leakage of confidential data, while the data is being stored, communicated, or computed on, even when the owner of the data does not trust the parties he or she communicates with.
+
+In many cases added value can be obtained by combining information from several confidential sources. This could motivate competing companies to compute some result from each others data, whilst keeping their data private. Other examples of this could be online voting where $n$ parties votes $yes$ or $no$ and a function determine if the majority voted yes, without revealing what other people voted and whilst making sure the result of the function is correct. Yet another example could be online auctions where $n$ parties make bids and a function correctly evaluates the who/what highest bid is, without revealing any bids. In fact, Danish sugar beet farmers uses a MPC action system to trade production rights. How can this be done without revealing confidential information while ensuring correctness of the result?
+
+% Trusted parties
+One possibility would be that all parties privately give their input(s) to a trusted party, who then does the computation, announces the result, and forgets about all private data he or she has seen. One problem with having a trusted party is that it creates a single point of attack from where all data could be stolen. Another problem is that all parties must trust the trusted party. The reason why there is privacy concerns in the first place is because the parties do not trust each other, so why should we believe that they can find a new party they all trust? So can the problem be solved without relying on a trusted party? In fact, the problem can be solved through MPC protocols, which are therefore the subject of this work.
+
+% Goal of thesis
+
+In detail, the aim of this thesis is to explore basic concepts and as well as progress in the field of MPC. More specifically this work looks at protocols for \emph{secure function evaluation} (SFE), meaning protocols that can evaluate any function. Various MPC concepts and protocols will be explored through both theory and implementation. The goal of this thesis is to compare implementations of different SFE protocols and look at how the implementations hold up against the theory. 
